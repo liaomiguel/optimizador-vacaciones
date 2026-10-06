@@ -325,12 +325,28 @@
             });
         }
 
+        const configDetails = $$('aside.config details.sec');
+        configDetails.forEach(det => {
+            det.addEventListener('toggle', () => {
+                if (det.open) {
+                    configDetails.forEach(other => {
+                        if (other !== det && other.open) other.open = false;
+                    });
+                }
+            });
+        });
+
         $('#btn-toggle-config')?.addEventListener('click', () => {
             const configAside = $('aside.config');
             if (configAside) {
                 configAside.scrollIntoView({ behavior: 'smooth' });
                 const firstDetails = configAside.querySelector('details');
-                if (firstDetails) firstDetails.open = true;
+                if (firstDetails) {
+                    firstDetails.open = true;
+                    configDetails.forEach(other => {
+                        if (other !== firstDetails && other.open) other.open = false;
+                    });
+                }
             }
         });
     }
