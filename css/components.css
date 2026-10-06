@@ -1,0 +1,1062 @@
+/* Estirá tus Días — Componentes de UI, formularios, tarjetas y visualizaciones */
+
+/* ---------- Formularios y Controles Base ---------- */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 12px 0;
+}
+
+.field label,
+.lbl {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+}
+
+.hint {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin: 2px 0 0;
+    line-height: 1.4;
+}
+
+input[type="number"],
+input[type="date"],
+input[type="text"],
+select {
+    background-color: var(--panel-input);
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    width: 100%;
+    min-width: 0;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="text"]:focus,
+select:focus {
+    border-color: var(--pine);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--pine-glow);
+}
+
+/* Select estilizado moderno que evita desbordes y flecha nativa superpuesta */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23486158' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 32px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+:root[data-theme="dark"] select,
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23A5BDB4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+}
+
+/* Grilla flexible para filas de 2 campos */
+.row2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+/* Botones */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1.5px solid var(--ink);
+    background-color: var(--ink);
+    color: var(--paper);
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.btn:hover {
+    background-color: var(--pine);
+    border-color: var(--pine);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn.ghost {
+    background-color: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+}
+
+.btn.ghost:hover {
+    background-color: var(--paper-soft);
+    border-color: var(--ink-muted);
+    color: var(--ink);
+}
+
+.btn.sm {
+    padding: 6px 12px;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.btn.danger {
+    border-color: var(--err);
+    color: var(--err);
+}
+
+.btn.danger:hover {
+    background-color: var(--err);
+    color: #FFFFFF;
+}
+
+/* Control segmentado (Régimen) */
+.seg {
+    display: flex;
+    background: var(--paper-soft);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    gap: 4px;
+}
+
+.seg label {
+    flex: 1;
+    position: relative;
+    text-align: center;
+    margin: 0;
+}
+
+.seg input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+}
+
+.seg span {
+    display: block;
+    padding: 7px 8px;
+    border-radius: calc(var(--radius-sm) - 2px);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.seg input:checked + span {
+    background: var(--panel);
+    color: var(--pine);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+.seg input:focus-visible + span {
+    outline: 2px solid var(--focus);
+}
+
+/* Días de la semana (Tu semana de trabajo) */
+.days7 {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.days7 button {
+    border: 1.5px solid var(--line);
+    background: var(--panel-input);
+    color: var(--ink-muted);
+    border-radius: var(--radius-sm);
+    padding: 9px 0;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: all var(--transition-fast);
+    text-transform: capitalize;
+}
+
+.days7 button:hover {
+    border-color: var(--pine);
+    color: var(--ink);
+}
+
+.days7 button[aria-pressed="true"] {
+    background: var(--pine);
+    color: #FFFFFF;
+    border-color: var(--pine);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Secciones plegables (Sidebar) */
+details.sec {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast);
+    overflow: hidden;
+}
+
+details.sec:hover {
+    border-color: var(--ink-muted);
+}
+
+details.sec > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 14px 18px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    color: var(--ink);
+}
+
+details.sec > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.sec > summary::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--ink-2);
+    border-bottom: 2px solid var(--ink-2);
+    transform: rotate(45deg);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+}
+
+details.sec[open] > summary::after {
+    transform: rotate(-135deg);
+}
+
+.sec-body {
+    padding: 4px 18px 18px;
+    border-top: 1px solid var(--line-subtle);
+}
+
+/* Checkboxes y listados de reglas */
+.chk {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 8px 0;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--ink);
+}
+
+.chk input {
+    margin-top: 2px;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    accent-color: var(--pine);
+    cursor: pointer;
+}
+
+.chk.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.count {
+    color: var(--ink-muted);
+    font-size: 0.82rem;
+    font-weight: normal;
+}
+
+/* Chips de fechas */
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    background: var(--pine-soft);
+    color: var(--pine);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    padding: 3px 6px 3px 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.chip button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--ink-2);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chip button:hover {
+    color: var(--err);
+    background: var(--err-bg);
+}
+
+/* Avisos / Notificaciones */
+.notice {
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    border: 1px solid transparent;
+}
+
+.notice.warn {
+    background: var(--warn-bg);
+    color: var(--warn);
+    border-color: rgba(180, 83, 9, 0.2);
+}
+
+.notice.err {
+    background: var(--err-bg);
+    color: var(--err);
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
+.notice.ok {
+    background: var(--pine-soft);
+    color: var(--pine);
+    border-color: rgba(30, 107, 88, 0.2);
+}
+
+/* ---------- Sección de Feriados y Tabla Optimizada ---------- */
+
+.tscroll {
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    margin: 10px 0;
+}
+
+/* La tabla de feriados rediseñada para legibilidad perfecta sin desbordes */
+#hol-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+#hol-table thead {
+    display: none; /* En vista compacta evitamos cabecera rígida que desborda */
+}
+
+#hol-table tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+        "date name del"
+        "cat  cat  cat";
+    gap: 6px 10px;
+    align-items: center;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+}
+
+#hol-table tbody tr:has(td[colspan]) {
+    display: block;
+    text-align: center;
+    color: var(--ink-muted);
+}
+
+#hol-table td {
+    padding: 0;
+    border: none;
+    vertical-align: middle;
+}
+
+#hol-table td:nth-child(1) {
+    grid-area: date;
+    font-weight: 700;
+    font-size: 0.84rem;
+    color: var(--pine);
+    white-space: nowrap;
+}
+
+#hol-table td:nth-child(2) {
+    grid-area: name;
+    font-size: 0.86rem;
+    color: var(--ink);
+    min-width: 0;
+    line-height: 1.3;
+}
+
+#hol-table td:nth-child(3) {
+    grid-area: cat;
+    width: 100%;
+}
+
+#hol-table td:nth-child(3) select {
+    font-size: 0.82rem;
+    padding: 6px 30px 6px 10px;
+    height: 34px;
+    background-color: var(--panel);
+}
+
+#hol-table td:nth-child(4) {
+    grid-area: del;
+    text-align: right;
+}
+
+#hol-table td:nth-child(4) button {
+    padding: 3px 8px;
+    font-size: 0.78rem;
+}
+
+/* ---------- Selector de Estrategia ---------- */
+
+.strategy {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.strategy label {
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.strategy input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+}
+
+.strategy .card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    background: var(--panel);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    transition: all var(--transition-fast);
+}
+
+.strategy .card b {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.strategy .card small {
+    color: var(--ink-muted);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.strategy .card:hover {
+    border-color: var(--ink-muted);
+    transform: translateY(-1px);
+}
+
+.strategy input:checked + .card {
+    border-color: var(--pine);
+    background: var(--paper-soft);
+    box-shadow: 0 0 0 2px var(--pine-glow), var(--shadow-sm);
+}
+
+.strategy input:checked + .card b {
+    color: var(--pine);
+}
+
+.strategy input:focus-visible + .card {
+    outline: 2.5px solid var(--focus);
+}
+
+/* ---------- Tarjeta Hero (Recomendación Principal) ---------- */
+
+.hero {
+    background: var(--panel);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 26px 28px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.hero h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    margin: 0;
+    color: var(--ink);
+}
+
+.hero .sub {
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* La tira de días estirados */
+.strip-container {
+    position: relative;
+    margin: 6px 0;
+}
+
+.strip-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin: 8px 0 4px;
+}
+
+.strip {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 6px 2px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+}
+
+.strip::-webkit-scrollbar {
+    height: 6px;
+}
+
+.strip::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: var(--radius-full);
+}
+
+.strip .d {
+    flex: 1 0 46px;
+    min-width: 46px;
+    max-width: 58px;
+    border-radius: var(--radius-sm);
+    padding: 8px 2px;
+    text-align: center;
+    background: var(--leaf);
+    color: var(--leaf-ink);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    user-select: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.strip .d .w {
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: block;
+    opacity: 0.85;
+    text-transform: capitalize;
+}
+
+.strip .d .n {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    display: block;
+    line-height: 1.1;
+    margin: 2px 0;
+}
+
+.strip .d .m {
+    font-size: 0.7rem;
+    display: block;
+    opacity: 0.8;
+    text-transform: capitalize;
+}
+
+.strip .d.vac {
+    background: var(--sun);
+    color: var(--sun-ink);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.strip .d.vac0 {
+    background: repeating-linear-gradient(135deg, var(--sun) 0 6px, var(--leaf) 6px 12px);
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.strip .d.hol {
+    box-shadow: inset 0 -4px 0 var(--mag);
+}
+
+/* Métricas destacadas (KPIs) */
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 10px 0;
+}
+
+.metric {
+    background: var(--paper-soft);
+    border: 1px solid var(--line-subtle);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metric .v {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.7rem;
+    color: var(--pine);
+    line-height: 1.1;
+}
+
+.metric .k {
+    font-size: 0.82rem;
+    color: var(--ink-2);
+    line-height: 1.35;
+}
+
+/* Explicación y Veredicto */
+.why {
+    background: var(--panel-input);
+    border-left: 3.5px solid var(--pine);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 18px;
+    margin: 8px 0;
+}
+
+.why p {
+    margin: 4px 0;
+    font-size: 0.92rem;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.verdict {
+    background: var(--pine-soft);
+    color: var(--pine);
+    border: 1px solid rgba(30, 107, 88, 0.2);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-top: 10px;
+    line-height: 1.5;
+    font-size: 0.92rem;
+}
+
+/* Detalle día por día */
+details.detail {
+    margin-top: 14px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+}
+
+details.detail > summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--pine);
+    font-size: 0.94rem;
+}
+
+.detail h4 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    margin: 18px 0 6px;
+    color: var(--ink);
+}
+
+.detail table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    background: var(--panel);
+}
+
+.detail th,
+.detail td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--line-subtle);
+}
+
+.detail th {
+    background: var(--paper-soft);
+    color: var(--ink-2);
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.tag-s {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: var(--leaf);
+    color: var(--leaf-ink);
+}
+
+.tag-s.yes {
+    background: var(--sun);
+    color: var(--sun-ink);
+}
+
+/* ---------- Comparación de Alternativas ---------- */
+
+h3.h {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+    margin: 28px 0 12px;
+    color: var(--ink);
+}
+
+.cmp {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+}
+
+.opt {
+    background: var(--panel);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.opt:hover {
+    border-color: var(--ink-muted);
+}
+
+.opt.active {
+    border-color: var(--pine);
+    box-shadow: 0 0 0 2px var(--pine-glow), var(--shadow-sm);
+    background: var(--paper-soft);
+}
+
+.opt h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--ink);
+}
+
+.opt .dates {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--pine);
+    line-height: 1.35;
+}
+
+.opt dl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+    margin: 6px 0;
+    font-size: 0.86rem;
+    border-top: 1px solid var(--line-subtle);
+    padding-top: 6px;
+}
+
+.opt dt {
+    color: var(--ink-muted);
+}
+
+.opt dd {
+    margin: 0;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: right;
+}
+
+.opt .same {
+    font-size: 0.84rem;
+    color: var(--ink-muted);
+    font-style: italic;
+    margin: 4px 0;
+}
+
+/* Alternativas de lista */
+.alts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.alts li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    box-shadow: var(--shadow-sm);
+}
+
+.alts .meta {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    margin-top: 2px;
+}
+
+/* ---------- Calendario ---------- */
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 10px 0 16px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+}
+
+.legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sw {
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-sm);
+    display: inline-grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+}
+
+.months {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.month {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+}
+
+.month h4 {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    text-transform: capitalize;
+    color: var(--ink);
+}
+
+.grid7 {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+}
+
+.grid7 .wd {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-muted);
+    text-align: center;
+    padding-bottom: 4px;
+    text-transform: capitalize;
+}
+
+.c {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+    font-size: 0.84rem;
+    font-weight: 500;
+    position: relative;
+    border: 1.5px solid transparent;
+    transition: transform var(--transition-fast);
+}
+
+.c:hover {
+    transform: scale(1.12);
+    z-index: 2;
+    border-color: var(--pine);
+}
+
+.c-off {
+    background: var(--leaf);
+    color: var(--leaf-ink);
+}
+
+.c-hol {
+    color: var(--mag);
+    font-weight: 800;
+    background: var(--mag-soft);
+}
+
+.c-hol::after,
+.sw.hol::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid var(--mag);
+    border-left: 6px solid transparent;
+}
+
+.c-holign {
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+.c-vac {
+    background: var(--sun);
+    color: var(--sun-ink);
+    font-weight: 800;
+}
+
+.c-vac0 {
+    background: repeating-linear-gradient(135deg, var(--sun) 0 4px, var(--leaf) 4px 8px);
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.c-ext {
+    border: 2px solid var(--pine);
+}
+
+.c-out {
+    opacity: 0.35;
+}
+
+.c-excl {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.c-today {
+    box-shadow: inset 0 0 0 2px var(--ink);
+    font-weight: 800;
+}
+
+/* Pruebas */
+.tests {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    font-size: 0.88rem;
+}
+
+.tests li {
+    margin: 4px 0;
+}
+
+.tests .ok {
+    color: var(--pine);
+    font-weight: 600;
+}
+
+.tests .bad {
+    color: var(--err);
+    font-weight: 700;
+}
+
+.empty {
+    background: var(--panel);
+    border: 2px dashed var(--line);
+    border-radius: var(--radius-lg);
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .hero.flash .strip .d {
+        animation: grow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes grow {
+        from {
+            transform: scaleX(0.7) scaleY(0.9);
+            opacity: 0.4;
+        }
+        to {
+            transform: none;
+            opacity: 1;
+        }
+    }
+}

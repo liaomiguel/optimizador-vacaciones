@@ -1,0 +1,150 @@
+/* Estirá tus Días — Sistema de temas y variables de diseño */
+
+:root {
+    /* Paleta Base - Modo Claro */
+    --paper: #F6F9F7;
+    --paper-soft: #EEF4F0;
+    --panel: #FFFFFF;
+    --panel-elevated: #FFFFFF;
+    --panel-input: #F8FAF9;
+    --line: #D9E4DD;
+    --line-subtle: #E8EFEA;
+    
+    /* Textos */
+    --ink: #112822;
+    --ink-2: #486158;
+    --ink-muted: #728B82;
+
+    /* Acentos Principales */
+    --pine: #1E6B58;
+    --pine-hover: #165344;
+    --pine-soft: #E2EFE9;
+    --pine-glow: rgba(30, 107, 88, 0.15);
+
+    /* Vacaciones / Saldo (Sol cálido) */
+    --sun: #EAB308;
+    --sun-hover: #CA8A04;
+    --sun-ink: #3A2800;
+    --sun-soft: #FEF3C7;
+
+    /* Días Libres / Fines de Semana */
+    --leaf: #D1E7DD;
+    --leaf-ink: #164E3D;
+    --leaf-soft: #E8F5EE;
+
+    /* Feriados (Magenta festivo) */
+    --mag: #BE185D;
+    --mag-soft: #FDE2ED;
+    --mag-ink: #700C35;
+
+    /* Estados */
+    --warn: #B45309;
+    --warn-bg: #FEF3C7;
+    --err: #DC2626;
+    --err-bg: #FEE2E2;
+    --focus: #2563EB;
+
+    /* Sombras y elevaciones */
+    --shadow-sm: 0 1px 3px rgba(17, 40, 34, 0.05);
+    --shadow-md: 0 4px 14px rgba(17, 40, 34, 0.08);
+    --shadow-lg: 0 10px 28px rgba(17, 40, 34, 0.12);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-full: 9999px;
+
+    /* Tipografías */
+    --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-body: 'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    /* Transiciones */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modo Oscuro Automático y Manual */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --paper: #0B1411;
+        --paper-soft: #101C18;
+        --panel: #14231E;
+        --panel-elevated: #1B2E28;
+        --panel-input: #101B17;
+        --line: #263B33;
+        --line-subtle: #1A2B25;
+
+        --ink: #EDF5F1;
+        --ink-2: #A5BDB4;
+        --ink-muted: #6E887E;
+
+        --pine: #4ADE80;
+        --pine-hover: #22C55E;
+        --pine-soft: #17382B;
+        --pine-glow: rgba(74, 222, 128, 0.2);
+
+        --sun: #FACC15;
+        --sun-hover: #EAB308;
+        --sun-ink: #201700;
+        --sun-soft: #382C05;
+
+        --leaf: #1E3A30;
+        --leaf-ink: #A3E0C9;
+        --leaf-soft: #162B23;
+
+        --mag: #F472B6;
+        --mag-soft: #3D1C2A;
+        --mag-ink: #FBCFE8;
+
+        --warn: #FBBF24;
+        --warn-bg: #3B2B0A;
+        --err: #F87171;
+        --err-bg: #3F1717;
+        --focus: #60A5FA;
+
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35);
+        --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.45);
+    }
+}
+
+:root[data-theme="dark"] {
+    --paper: #0B1411;
+    --paper-soft: #101C18;
+    --panel: #14231E;
+    --panel-elevated: #1B2E28;
+    --panel-input: #101B17;
+    --line: #263B33;
+    --line-subtle: #1A2B25;
+
+    --ink: #EDF5F1;
+    --ink-2: #A5BDB4;
+    --ink-muted: #6E887E;
+
+    --pine: #4ADE80;
+    --pine-hover: #22C55E;
+    --pine-soft: #17382B;
+    --pine-glow: rgba(74, 222, 128, 0.2);
+
+    --sun: #FACC15;
+    --sun-hover: #EAB308;
+    --sun-ink: #201700;
+    --sun-soft: #382C05;
+
+    --leaf: #1E3A30;
+    --leaf-ink: #A3E0C9;
+    --leaf-soft: #162B23;
+
+    --mag: #F472B6;
+    --mag-soft: #3D1C2A;
+    --mag-ink: #FBCFE8;
+
+    --warn: #FBBF24;
+    --warn-bg: #3B2B0A;
+    --err: #F87171;
+    --err-bg: #3F1717;
+    --focus: #60A5FA;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.45);
+}

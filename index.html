@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Estirá tus Días — Tus vacaciones, mejor aprovechadas</title>
+    <meta name="description" content="Calculador inteligente de vacaciones para Argentina: optimizá períodos aprovechando feriados y fines de semana para descansar más con menos días.">
+
+    <!-- Tipografías -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap"
+        rel="stylesheet">
+
+    <!-- Estilos modulares -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+
+<body>
+    <div class="wrap">
+        <header class="top">
+            <div class="top-bar">
+                <div class="brand-group">
+                    <div class="brand-row">
+                        <h1 class="brand">Estirá <span class="stretch">tus Días</span></h1>
+                        <span class="badge-country">🇦🇷 Argentina</span>
+                    </div>
+                    <p class="tag">Tus vacaciones, mejor aprovechadas.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="mobile-config-toggle" type="button" id="btn-toggle-config" aria-label="Abrir configuración">
+                        ⚙️ Ajustar reglas
+                    </button>
+                    <button class="btn-icon" type="button" id="btn-theme-toggle" aria-label="Alternar modo oscuro / claro" title="Alternar tema">
+                        🌓
+                    </button>
+                </div>
+            </div>
+            <p class="lede">Cargá tu saldo y tus reglas: la app evalúa todas las combinaciones de fechas del año, las
+                mide con métricas verificables y te recomienda cuál te conviene para descansar más con menos días descontados.</p>
+        </header>
+
+        <div class="layout">
+            <aside class="config" aria-label="Configuración de vacaciones">
+                <details class="sec" open>
+                    <summary>Lo básico</summary>
+                    <div class="sec-body">
+                        <div class="row2">
+                            <div class="field">
+                                <label for="f-year">Año</label>
+                                <select id="f-year"></select>
+                            </div>
+                            <div class="field">
+                                <label for="f-S">Días disponibles</label>
+                                <input id="f-S" type="number" min="0" max="60" step="1">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <span class="lbl" id="lbl-reg">Cómo se cuentan tus vacaciones</span>
+                            <div class="seg" role="radiogroup" aria-labelledby="lbl-reg">
+                                <label><input type="radio" name="regime" value="corridos"><span>Días corridos</span></label>
+                                <label><input type="radio" name="regime" value="habiles"><span>Días hábiles</span></label>
+                                <label><input type="radio" name="regime" value="custom"><span>Personalizado</span></label>
+                            </div>
+                            <p class="hint">Corridos: descuenta cada día del período. Hábiles: solo los días que
+                                trabajarías. Ajustá el detalle en «Qué descuenta saldo».</p>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="sec">
+                    <summary>Qué descuenta saldo</summary>
+                    <div class="sec-body">
+                        <p class="hint">Para cada tipo de día dentro de tus vacaciones, marcá si consume saldo. El
+                            calendario de trabajo y el de descuento son independientes.</p>
+                        <div id="cost-rules"></div>
+                    </div>
+                </details>
+
+                <details class="sec">
+                    <summary>Tu semana de trabajo</summary>
+                    <div class="sec-body">
+                        <p class="hint" id="wd-hint">Marcá los días que trabajás normalmente. Los que no marques cuentan
+                            como libres.</p>
+                        <div class="days7" id="workdays" role="group" aria-describedby="wd-hint"></div>
+                    </div>
+                </details>
+
+                <details class="sec" id="sec-hol">
+                    <summary>Feriados y días no laborables</summary>
+                    <div class="sec-body">
+                        <div id="src-status" class="src-status" aria-live="polite"></div>
+                        <button class="btn ghost sm" id="btn-refetch" type="button" style="width:100%;margin-bottom:8px">Volver a consultar ArgentinaDatos</button>
+                        
+                        <h4 style="margin:14px 0 6px;font-size:0.95rem">Qué cuenta como día libre</h4>
+                        <div id="cat-list"></div>
+
+                        <h4 style="margin:16px 0 6px;font-size:0.95rem">Fechas del año</h4>
+                        <div class="tscroll">
+                            <table id="hol-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th><span class="sr">Acciones</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <p class="hint" id="hidden-note"></p>
+
+                        <h4 style="margin:16px 0 6px;font-size:0.95rem">Agregar una fecha propia</h4>
+                        <div class="row2">
+                            <div class="field">
+                                <label for="add-date">Fecha</label>
+                                <input id="add-date" type="date">
+                            </div>
+                            <div class="field">
+                                <label for="add-cat">Categoría</label>
+                                <select id="add-cat"></select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="add-name">Nombre</label>
+                            <input id="add-name" type="text" placeholder="Ej.: Día del empleado de comercio">
+                        </div>
+                        <button class="btn sm" id="btn-add" type="button" style="margin-top:4px">Agregar fecha</button>
+                        <p class="hint">Tus fechas se guardan aparte de las importadas: podés volver a consultar la API
+                            sin perderlas.</p>
+                    </div>
+                </details>
+
+                <details class="sec">
+                    <summary>Fechas y restricciones</summary>
+                    <div class="sec-body">
+                        <div class="row2">
+                            <div class="field">
+                                <label for="f-rs">Desde</label>
+                                <input id="f-rs" type="date">
+                            </div>
+                            <div class="field">
+                                <label for="f-re">Hasta</label>
+                                <input id="f-re" type="date">
+                            </div>
+                        </div>
+                        <div class="row2">
+                            <div class="field">
+                                <label for="f-min">Mínimo días por período</label>
+                                <input id="f-min" type="number" min="1" max="120">
+                            </div>
+                            <div class="field">
+                                <label for="f-max">Máximo días por período</label>
+                                <input id="f-max" type="number" min="0" max="120">
+                                <span class="hint">0 = sin límite</span>
+                            </div>
+                        </div>
+                        <div class="row2">
+                            <div class="field">
+                                <label for="f-K">Máximo períodos</label>
+                                <input id="f-K" type="number" min="1" max="5">
+                            </div>
+                            <div class="field">
+                                <label for="f-sep">Separación mínima</label>
+                                <input id="f-sep" type="number" min="0" max="120">
+                                <span class="hint">días entre bloques</span>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="f-pref">Preferencia de división</label>
+                            <select id="f-pref">
+                                <option value="none">Sin preferencia</option>
+                                <option value="one">Un solo período</option>
+                                <option value="many">Dos o más períodos</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="f-avoid">Fechas a evitar</label>
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <input id="f-avoid" type="date">
+                                <button class="btn sm" type="button" id="btn-avoid">Agregar</button>
+                            </div>
+                            <div class="chips" id="avoid-chips"></div>
+                        </div>
+                        <div class="field">
+                            <label for="f-prefer">Fechas preferidas</label>
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <input id="f-prefer" type="date">
+                                <button class="btn sm" type="button" id="btn-prefer">Agregar</button>
+                            </div>
+                            <div class="chips" id="prefer-chips"></div>
+                            <span class="hint">Se usan para desempatar entre opciones equivalentes.</span>
+                        </div>
+                        <button class="btn ghost sm" type="button" id="btn-reset" style="margin-top:12px;width:100%">Restablecer valores iniciales</button>
+                    </div>
+                </details>
+            </aside>
+
+            <main id="main">
+                <div class="strategy" role="radiogroup" aria-label="Prioridad de optimización">
+                    <label>
+                        <input type="radio" name="strategy" value="A">
+                        <span class="card">
+                            <b>⚡ Máximo descanso</b>
+                            <small>El bloque de días libres seguidos más largo posible con tu saldo.</small>
+                        </span>
+                    </label>
+                    <label>
+                        <input type="radio" name="strategy" value="B">
+                        <span class="card">
+                            <b>🎯 Máximo rendimiento</b>
+                            <small>Mayor cantidad de descanso nuevo por cada día que descontás.</small>
+                        </span>
+                    </label>
+                    <label>
+                        <input type="radio" name="strategy" value="C">
+                        <span class="card">
+                            <b>🗓️ Descanso distribuido</b>
+                            <small>Repartir el saldo en varios bloques para sumar más días libres en el año.</small>
+                        </span>
+                    </label>
+                </div>
+
+                <div id="notices" aria-live="polite"></div>
+                <section id="hero" aria-live="polite"></section>
+                <section id="compare"></section>
+                <section id="alts"></section>
+
+                <section aria-labelledby="cal-h">
+                    <h3 class="h" id="cal-h">Calendario anual</h3>
+                    <p class="hint" id="cal-showing"></p>
+                    <ul class="legend" aria-label="Referencias del calendario">
+                        <li><span class="sw c-vac"></span>Vacaciones con costo de saldo</li>
+                        <li><span class="sw c-vac0"></span>Vacaciones sin descuento</li>
+                        <li><span class="sw c-off"></span>Fin de semana o día libre habitual</li>
+                        <li><span class="sw hol">F</span>Feriado o no laborable aplicable</li>
+                        <li><span class="sw c-ext"></span>Día libre que estira tu bloque</li>
+                        <li><span class="sw" style="background:var(--panel)"></span>Día laborable</li>
+                        <li><span class="sw" style="text-decoration:underline dotted">8</span>Feriado no considerado</li>
+                    </ul>
+                    <div class="months" id="months"></div>
+                </section>
+
+                <section aria-labelledby="t-h">
+                    <details class="sec" style="margin-top:20px">
+                        <summary id="t-h">Verificar el motor de cálculo (Pruebas automáticas)</summary>
+                        <div class="sec-body" style="padding-top:14px">
+                            <p class="hint">Ejecuta las 16 pruebas automatizadas con calendarios fijos: costos en corridos y hábiles, bloques, saldo, restricciones, prevención de doble conteo y resiliencia ante datos faltantes.</p>
+                            <button class="btn ghost sm" type="button" id="btn-tests" style="margin-top:8px">Correr pruebas</button>
+                            <ul class="tests" id="tests"></ul>
+                        </div>
+                    </details>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <p>Los resultados dependen de las reglas que configuraste; no reemplazan lo que establezca tu convenio colectivo, tu empleador o la normativa que te aplique. Feriados: <a href="https://argentinadatos.com/docs/operations/get-feriados" target="_blank" rel="noopener">ArgentinaDatos</a>. Los cálculos se realizan de forma determinística en tu navegador, sin servidores externos ni IA.</p>
+        </footer>
+    </div>
+
+    <!-- Scripts modulares -->
+    <script src="js/engine.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/testsuite.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

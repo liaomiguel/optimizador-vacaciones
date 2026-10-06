@@ -1,0 +1,16 @@
+{
+  "name": "estira-tus-dias",
+  "version": "1.0.0",
+  "description": "Herramienta para calcular, comparar y optimizar períodos de vacaciones en Argentina aprovechando feriados y fines de semana.",
+  "scripts": {
+    "start": "npx -y serve .",
+    "test": "node -e 'const E = require(\"./js/engine.js\"); const runTests = require(\"./js/testsuite.js\"); const r = runTests(E); const ok = r.filter(x => x.ok).length; console.log(`Pruebas pasadas: ${ok}/${r.length}`); if(ok !== r.length) process.exit(1);'"
+  },
+  "keywords": [
+    "vacaciones",
+    "feriados",
+    "argentina",
+    "optimizador"
+  ],
+  "license": "MIT"
+}
