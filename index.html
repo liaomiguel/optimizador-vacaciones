@@ -7,12 +7,13 @@
     <title>Estirá tus Días — Tus vacaciones, mejor aprovechadas</title>
     <meta name="description" content="Calculador inteligente de vacaciones para Argentina: optimizá períodos aprovechando feriados y fines de semana para descansar más con menos días.">
 
-    <!-- Tipografías -->
+    <!-- Tipografías e Iconos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap"
         rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
     <!-- Estilos modulares -->
     <link rel="stylesheet" href="css/theme.css">
@@ -27,16 +28,16 @@
                 <div class="brand-group">
                     <div class="brand-row">
                         <h1 class="brand">Estirá <span class="stretch">tus Días</span></h1>
-                        <span class="badge-country">🇦🇷 Argentina</span>
+                        <span class="badge-country"><span class="material-icons-outlined" aria-hidden="true">flag</span> Argentina</span>
                     </div>
                     <p class="tag">Tus vacaciones, mejor aprovechadas.</p>
                 </div>
                 <div class="header-actions">
                     <button class="mobile-config-toggle" type="button" id="btn-toggle-config" aria-label="Abrir configuración">
-                        ⚙️ Ajustar reglas
+                        <span class="material-icons-outlined" aria-hidden="true">tune</span> Ajustar reglas
                     </button>
                     <button class="btn-icon" type="button" id="btn-theme-toggle" aria-label="Alternar modo oscuro / claro" title="Alternar tema">
-                        🌓
+                        <span class="material-icons-outlined" aria-hidden="true">brightness_medium</span>
                     </button>
                 </div>
             </div>
@@ -51,13 +52,18 @@
                     <div class="sec-body">
                         <div class="row2">
                             <div class="field">
-                                <label for="f-year">Año</label>
+                                <label for="f-year">Año de vacaciones</label>
                                 <select id="f-year"></select>
                             </div>
                             <div class="field">
                                 <label for="f-S">Días disponibles</label>
                                 <input id="f-S" type="number" min="0" max="60" step="1">
                             </div>
+                        </div>
+                        <div class="field">
+                            <label for="f-deadline">Fecha límite / Vencimiento</label>
+                            <input id="f-deadline" type="date">
+                            <p class="hint">Fecha tope para gozar estos días (por defecto el 31 de mayo del año siguiente, según LCT o tu empresa).</p>
                         </div>
                         <div class="field">
                             <span class="lbl" id="lbl-reg">Cómo se cuentan tus vacaciones</span>
@@ -94,7 +100,9 @@
                     <summary>Feriados y días no laborables</summary>
                     <div class="sec-body">
                         <div id="src-status" class="src-status" aria-live="polite"></div>
-                        <button class="btn ghost sm" id="btn-refetch" type="button" style="width:100%;margin-bottom:8px">Volver a consultar ArgentinaDatos</button>
+                        <button class="btn ghost sm" id="btn-refetch" type="button" style="width:100%;margin-bottom:8px">
+                            <span class="material-icons-outlined" aria-hidden="true">sync</span> Volver a consultar ArgentinaDatos
+                        </button>
                         
                         <h4 style="margin:14px 0 6px;font-size:0.95rem">Qué cuenta como día libre</h4>
                         <div id="cat-list"></div>
@@ -130,7 +138,9 @@
                             <label for="add-name">Nombre</label>
                             <input id="add-name" type="text" placeholder="Ej.: Día del empleado de comercio">
                         </div>
-                        <button class="btn sm" id="btn-add" type="button" style="margin-top:4px">Agregar fecha</button>
+                        <button class="btn sm" id="btn-add" type="button" style="margin-top:4px">
+                            <span class="material-icons-outlined" aria-hidden="true">add</span> Agregar fecha
+                        </button>
                         <p class="hint">Tus fechas se guardan aparte de las importadas: podés volver a consultar la API
                             sin perderlas.</p>
                     </div>
@@ -183,7 +193,9 @@
                             <label for="f-avoid">Fechas a evitar</label>
                             <div style="display:flex;gap:8px;align-items:center">
                                 <input id="f-avoid" type="date">
-                                <button class="btn sm" type="button" id="btn-avoid">Agregar</button>
+                                <button class="btn sm" type="button" id="btn-avoid">
+                                    <span class="material-icons-outlined" aria-hidden="true">add</span> Agregar
+                                </button>
                             </div>
                             <div class="chips" id="avoid-chips"></div>
                         </div>
@@ -191,12 +203,16 @@
                             <label for="f-prefer">Fechas preferidas</label>
                             <div style="display:flex;gap:8px;align-items:center">
                                 <input id="f-prefer" type="date">
-                                <button class="btn sm" type="button" id="btn-prefer">Agregar</button>
+                                <button class="btn sm" type="button" id="btn-prefer">
+                                    <span class="material-icons-outlined" aria-hidden="true">add</span> Agregar
+                                </button>
                             </div>
                             <div class="chips" id="prefer-chips"></div>
                             <span class="hint">Se usan para desempatar entre opciones equivalentes.</span>
                         </div>
-                        <button class="btn ghost sm" type="button" id="btn-reset" style="margin-top:12px;width:100%">Restablecer valores iniciales</button>
+                        <button class="btn ghost sm" type="button" id="btn-reset" style="margin-top:12px;width:100%">
+                            <span class="material-icons-outlined" aria-hidden="true">restart_alt</span> Restablecer valores iniciales
+                        </button>
                     </div>
                 </details>
             </aside>
@@ -206,21 +222,21 @@
                     <label>
                         <input type="radio" name="strategy" value="A">
                         <span class="card">
-                            <b>⚡ Máximo descanso</b>
+                            <b><span class="strategy-header"><span class="material-icons-outlined" aria-hidden="true">bolt</span> Máximo descanso</span></b>
                             <small>El bloque de días libres seguidos más largo posible con tu saldo.</small>
                         </span>
                     </label>
                     <label>
                         <input type="radio" name="strategy" value="B">
                         <span class="card">
-                            <b>🎯 Máximo rendimiento</b>
+                            <b><span class="strategy-header"><span class="material-icons-outlined" aria-hidden="true">track_changes</span> Máximo rendimiento</span></b>
                             <small>Mayor cantidad de descanso nuevo por cada día que descontás.</small>
                         </span>
                     </label>
                     <label>
                         <input type="radio" name="strategy" value="C">
                         <span class="card">
-                            <b>🗓️ Descanso distribuido</b>
+                            <b><span class="strategy-header"><span class="material-icons-outlined" aria-hidden="true">calendar_month</span> Descanso distribuido</span></b>
                             <small>Repartir el saldo en varios bloques para sumar más días libres en el año.</small>
                         </span>
                     </label>
@@ -232,7 +248,7 @@
                 <section id="alts"></section>
 
                 <section aria-labelledby="cal-h">
-                    <h3 class="h" id="cal-h">Calendario anual</h3>
+                    <h3 class="h" id="cal-h">Calendario y proyección</h3>
                     <p class="hint" id="cal-showing"></p>
                     <ul class="legend" aria-label="Referencias del calendario">
                         <li><span class="sw c-vac"></span>Vacaciones con costo de saldo</li>
@@ -250,8 +266,10 @@
                     <details class="sec" style="margin-top:20px">
                         <summary id="t-h">Verificar el motor de cálculo (Pruebas automáticas)</summary>
                         <div class="sec-body" style="padding-top:14px">
-                            <p class="hint">Ejecuta las 16 pruebas automatizadas con calendarios fijos: costos en corridos y hábiles, bloques, saldo, restricciones, prevención de doble conteo y resiliencia ante datos faltantes.</p>
-                            <button class="btn ghost sm" type="button" id="btn-tests" style="margin-top:8px">Correr pruebas</button>
+                            <p class="hint">Ejecuta las pruebas automatizadas con calendarios fijos: costos en corridos y hábiles, bloques, saldo, restricciones, prevención de doble conteo, horizonte multianual y resiliencia ante datos faltantes.</p>
+                            <button class="btn ghost sm" type="button" id="btn-tests" style="margin-top:8px">
+                                <span class="material-icons-outlined" aria-hidden="true">play_arrow</span> Correr pruebas
+                            </button>
                             <ul class="tests" id="tests"></ul>
                         </div>
                     </details>

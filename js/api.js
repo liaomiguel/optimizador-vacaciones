@@ -26,6 +26,23 @@
                 { fecha: '2026-12-08', tipo: 'inamovible', nombre: 'Inmaculada Concepción de María' },
                 { fecha: '2026-12-25', tipo: 'inamovible', nombre: 'Navidad' }
             ]
+        },
+        2027: {
+            note: 'calendario oficial base para 2027 (Ley 27.399) a la espera de decreto de feriados puente',
+            data: [
+                { fecha: '2027-01-01', tipo: 'inamovible', nombre: 'Año Nuevo' },
+                { fecha: '2027-02-08', tipo: 'inamovible', nombre: 'Carnaval' },
+                { fecha: '2027-02-09', tipo: 'inamovible', nombre: 'Carnaval' },
+                { fecha: '2027-03-24', tipo: 'inamovible', nombre: 'Día Nacional de la Memoria por la Verdad y la Justicia' },
+                { fecha: '2027-03-26', tipo: 'inamovible', nombre: 'Viernes Santo' },
+                { fecha: '2027-04-02', tipo: 'inamovible', nombre: 'Día del Veterano y de los Caídos en la Guerra de Malvinas' },
+                { fecha: '2027-05-01', tipo: 'inamovible', nombre: 'Día del Trabajador' },
+                { fecha: '2027-05-25', tipo: 'inamovible', nombre: 'Día de la Revolución de Mayo' },
+                { fecha: '2027-06-20', tipo: 'inamovible', nombre: 'Paso a la Inmortalidad del General Manuel Belgrano' },
+                { fecha: '2027-07-09', tipo: 'inamovible', nombre: 'Día de la Independencia' },
+                { fecha: '2027-12-08', tipo: 'inamovible', nombre: 'Inmaculada Concepción de María' },
+                { fecha: '2027-12-25', tipo: 'inamovible', nombre: 'Navidad' }
+            ]
         }
     };
 
@@ -52,10 +69,10 @@
 
     const CACHE_TTL = 7 * 86400000;
 
-    function fixedPadding(year) {
+    function fixedPadding(startYear, endYear = startYear) {
         return [
-            { id: `regla:${year - 1}-12-25`, fecha: `${year - 1}-12-25`, nombre: 'Navidad (año anterior)', tipoOriginal: null, categoria: 'nacional', fuente: 'regla fija (Ley 27.399)', origen: 'regla' },
-            { id: `regla:${year + 1}-01-01`, fecha: `${year + 1}-01-01`, nombre: 'Año Nuevo (año siguiente)', tipoOriginal: null, categoria: 'nacional', fuente: 'regla fija (Ley 27.399)', origen: 'regla' }
+            { id: `regla:${startYear - 1}-12-25`, fecha: `${startYear - 1}-12-25`, nombre: 'Navidad (año anterior)', tipoOriginal: null, categoria: 'nacional', fuente: 'regla fija (Ley 27.399)', origen: 'regla' },
+            { id: `regla:${endYear + 1}-01-01`, fecha: `${endYear + 1}-01-01`, nombre: 'Año Nuevo (año siguiente)', tipoOriginal: null, categoria: 'nacional', fuente: 'regla fija (Ley 27.399)', origen: 'regla' }
         ];
     }
 
@@ -123,6 +140,39 @@
                 message,
                 provisional,
                 when
+            };
+        },
+
+        async loadYears(years, force, storage, engine) {
+            const uniqueYears = Array.from(new Set(years)).sort();
+            const results = await Promise.all(uniqueYears.map(y => this.load(y, force, storage, engine)));
+
+            const allItems = [];
+            const allIssues = [];
+            let worstStatus = 'api';
+            let anyProvisional = false;
+            const messages = [];
+
+            for (const res of results) {
+                allItems.push(...res.items);
+                if (res.issues) allIssues.push(...res.issues);
+                if (res.provisional) anyProvisional = true;
+                if (res.status === 'none' || res.status === 'stale' || res.status === 'snapshot') {
+                    worstStatus = res.status;
+                }
+                if (res.message) messages.push(`${res.year}: ${res.message}`);
+            }
+
+            allItems.sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0));
+
+            return {
+                years: uniqueYears,
+                items: allItems,
+                issues: allIssues,
+                status: worstStatus,
+                message: messages.join(' · '),
+                provisional: anyProvisional,
+                when: results[0] ? results[0].when : null
             };
         }
     };

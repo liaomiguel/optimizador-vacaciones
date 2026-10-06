@@ -84,6 +84,19 @@
             const r = E.normalizeHolidays([{ fecha: '2026-02-30', tipo: 'inamovible', nombre: 'x' }, { fecha: '2025-05-01', tipo: 'inamovible', nombre: 'y' }, { fecha: '2026-05-01', tipo: 'raro', nombre: 'z' }], 2026, 'prueba');
             return all(eq(r.items.length, 1, 'válidos'), eq(r.items[0].categoria, 'sin_clasificar', 'categoría'), eq(r.issues.length, 3, 'avisos'));
         });
+        t('Horizonte multianual: abarca vencimiento en el año entrante', () => {
+            const h2027 = [
+                { id: 't:2027-01-01', fecha: '2027-01-01', nombre: 'Año Nuevo', tipoOriginal: 'inamovible', categoria: 'nacional', fuente: 'prueba', origen: 'importado' },
+                { id: 't:2027-03-26', fecha: '2027-03-26', nombre: 'Viernes Santo', tipoOriginal: 'inamovible', categoria: 'nacional', fuente: 'prueba', origen: 'importado' }
+            ];
+            const cMulti = E.buildCalendar(base({ rangeStart: '2026-10-01', rangeEnd: '2027-05-31' }), H.concat(h2027));
+            const opt = E.optimize(cMulti, { S: 5, maxPeriods: 2, strategy: 'A' });
+            return all(
+                cMulti.days[cMulti.days.length - 1].date >= '2027-05-31',
+                cMulti.days[0].date <= '2026-10-01',
+                opt.recommendation && opt.recommendation.D > 0
+            );
+        });
         t('Respuesta que no es una lista', () => eq(E.normalizeHolidays(null, 2026, 'x').items.length, 0, 'ítems'));
         return results;
     }

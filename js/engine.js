@@ -59,12 +59,15 @@
     /* ---------- Calendario ---------- */
     function buildCalendar(cfg, holidays) {
         const pad = cfg.pad == null ? 16 : cfg.pad;
-        const start = addDays(`${cfg.year}-01-01`, -pad), end = addDays(`${cfg.year}-12-31`, pad);
+        const rs = cfg.rangeStart || `${cfg.year}-01-01`;
+        const re = cfg.rangeEnd || `${cfg.year}-12-31`;
+        const minDate = rs < `${cfg.year}-01-01` ? rs : `${cfg.year}-01-01`;
+        const maxDate = re > `${cfg.year}-12-31` ? re : `${cfg.year}-12-31`;
+        const start = addDays(minDate, -pad), end = addDays(maxDate, pad);
         const n = diffDays(start, end) + 1;
         const byDate = new Map();
         holidays.forEach(h => { if (!byDate.has(h.fecha)) byDate.set(h.fecha, []); byDate.get(h.fecha).push(h); });
         const avoid = new Set(cfg.avoid || []), prefer = new Set(cfg.prefer || []);
-        const rs = cfg.rangeStart || `${cfg.year}-01-01`, re = cfg.rangeEnd || `${cfg.year}-12-31`;
         const days = new Array(n);
         for (let i = 0; i < n; i++) {
             const date = addDays(start, i), dw = dowOf(date);
@@ -78,17 +81,17 @@
             else if (dw === 6) costCat = 'sabado';
             else if (dw === 0) costCat = 'domingo';
             else costCat = 'no_habitual';
-            const inYear = date.slice(0, 4) === String(cfg.year);
+            const inRange = date >= rs && date <= re;
             days[i] = {
                 i, date, dow: dw, isWeekend: dw === 0 || dw === 6, holidays: hs, applying,
                 isHoliday: hs.length > 0, holidayApplies, isWorkdayHabitual,
                 is_non_working_day: !isWorkdayHabitual || holidayApplies,
                 costCat, consumes_vacation_balance: !!cfg.costRules[costCat],
                 excluded: avoid.has(date), preferred: prefer.has(date),
-                inYear, inRange: inYear && date >= rs && date <= re
+                inYear: inRange, inRange: inRange
             };
         }
-        return { start, end, days, index: new Map(days.map(d => [d.date, d.i])), year: cfg.year };
+        return { start, end, days, index: new Map(days.map(d => [d.date, d.i])), year: cfg.year, rangeStart: rs, rangeEnd: re };
     }
     function periodCost(cal, s, e) { let c = 0; for (let i = cal.index.get(s); i <= cal.index.get(e); i++) c += cal.days[i].consumes_vacation_balance ? 1 : 0; return c; }
 

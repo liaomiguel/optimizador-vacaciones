@@ -160,6 +160,36 @@ header.top {
     transform: translateY(-1px);
 }
 
+/* Tipografía e iconos Material Icons Outlined */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.badge-country .material-icons-outlined {
+    font-size: 15px;
+}
+
+.btn-icon .material-icons-outlined {
+    font-size: 21px;
+}
+
 /* Botón flotante/móvil para ver configuración */
 .mobile-config-toggle {
     display: none;

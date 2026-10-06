@@ -19,13 +19,18 @@
 
     const fmt = (iso, withDow) => {
         const d = E.parseISO(iso), dt = new Date(d);
-        const s = `${dt.getUTCDate()} de ${MESES[dt.getUTCMonth()]}`;
+        const y = dt.getUTCFullYear();
+        const s = `${dt.getUTCDate()} de ${MESES[dt.getUTCMonth()]}${y !== state.year ? ' ' + y : ''}`;
         return withDow ? `${DIAS[dt.getUTCDay()]} ${s}` : s;
     };
+
     const fmtShort = iso => {
         const dt = new Date(E.parseISO(iso));
-        return `${DC[dt.getUTCDay()]} ${dt.getUTCDate()}/${dt.getUTCMonth() + 1}`;
+        const y = dt.getUTCFullYear();
+        const yrSuffix = y !== state.year ? `/${String(y).slice(-2)}` : '';
+        return `${DC[dt.getUTCDay()]} ${dt.getUTCDate()}/${dt.getUTCMonth() + 1}${yrSuffix}`;
     };
+
     const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 
     /* ---------- Persistencia Local ---------- */
@@ -62,11 +67,13 @@
         const btn = $('#btn-theme-toggle');
         if (theme === 'auto') {
             document.documentElement.removeAttribute('data-theme');
-            if (btn) btn.innerHTML = '🌓';
+            if (btn) btn.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">brightness_medium</span>';
             if (btn) btn.setAttribute('title', 'Tema automático del sistema (click para cambiar)');
         } else {
             document.documentElement.setAttribute('data-theme', theme);
-            if (btn) btn.innerHTML = theme === 'dark' ? '🌙' : '☀️';
+            if (btn) btn.innerHTML = theme === 'dark' 
+                ? '<span class="material-icons-outlined" aria-hidden="true">dark_mode</span>' 
+                : '<span class="material-icons-outlined" aria-hidden="true">light_mode</span>';
             if (btn) btn.setAttribute('title', `Tema ${theme === 'dark' ? 'oscuro' : 'claro'} (click para alternar)`);
         }
     }
@@ -75,6 +82,7 @@
     const DEFAULTS = {
         year: CUR_YEAR,
         S: 14,
+        deadline: `${CUR_YEAR + 1}-05-31`,
         regime: 'corridos',
         costRules: Object.assign({}, E.REGIMES.corridos),
         workdays: [false, true, true, true, true, true, false],
@@ -101,36 +109,25 @@
     };
 
     let state = Object.assign({}, JSON.parse(JSON.stringify(DEFAULTS)), LS.get('etd:config', {}));
+    if (!state.deadline) state.deadline = `${state.year + 1}-05-31`;
+
     let personalAll = LS.get('etd:personal', {});
-    const personal = () => (personalAll[state.year] = personalAll[state.year] || { hidden: [], added: [] });
+    const personal = (y = state.year) => (personalAll[y] = personalAll[y] || { hidden: [], added: [] });
     function save() {
         LS.set('etd:config', state);
         LS.set('etd:personal', personalAll);
     }
 
-    /* ---------- Servicio de Feriados ---------- */
-    let holidayData = { year: null, items: [], issues: [], status: 'loading', message: '', provisional: true };
-
-    async function loadHolidays(year, force = false) {
-        holidayData = { year, items: [], issues: [], status: 'loading', message: 'Consultando feriados…', provisional: true };
-        renderSourceStatus();
-        holidayData = await HolidaysService.load(year, force, LS, E);
-        if (year === state.year) {
-            renderSourceStatus();
-            renderHolidays();
-            schedule();
-        }
-    }
-
-    const allHolidays = () => E.mergeHolidays(holidayData.items, personal()).concat(HolidaysService.fixedPadding(state.year));
-
     /* ---------- Configuración Efectiva y Validación ---------- */
     function effective() {
         const y = state.year;
-        let rs = state.rangeStart && state.rangeStart.startsWith(String(y)) ? state.rangeStart : (y === CUR_YEAR ? TODAY : `${y}-01-01`);
-        let re = state.rangeEnd && state.rangeEnd.startsWith(String(y)) ? state.rangeEnd : `${y}-12-31`;
+        const dl = state.deadline || `${y + 1}-05-31`;
+        let rs = state.rangeStart || (y === CUR_YEAR ? TODAY : `${y}-01-01`);
+        let re = state.rangeEnd || dl;
+        if (re < rs) re = dl;
         return {
             year: y,
+            deadline: dl,
             workdays: state.workdays,
             applyCats: state.applyCats,
             costRules: state.costRules,
@@ -140,6 +137,17 @@
             prefer: state.prefer,
             pad: 16
         };
+    }
+
+    function getActiveYears() {
+        const cfg = effective();
+        const sY = Number(cfg.rangeStart.slice(0, 4)) || state.year;
+        const eY = Number(cfg.rangeEnd.slice(0, 4)) || (state.year + 1);
+        const start = Math.min(state.year, sY);
+        const end = Math.max(state.year + 1, eY);
+        const years = [];
+        for (let y = start; y <= end; y++) years.push(y);
+        return years;
     }
 
     function validate(cfg) {
@@ -152,6 +160,36 @@
         if (state.S > 60) errs.push('El saldo máximo admitido es 60 días.');
         return errs;
     }
+
+    /* ---------- Servicio de Feriados Multianual ---------- */
+    let holidayData = { year: null, years: [], items: [], issues: [], status: 'loading', message: '', provisional: true };
+
+    async function loadHolidaysForRange(force = false) {
+        const years = getActiveYears();
+        holidayData = {
+            year: state.year,
+            years,
+            items: [],
+            issues: [],
+            status: 'loading',
+            message: `Consultando feriados de ${years.join(' y ')}…`,
+            provisional: true
+        };
+        renderSourceStatus();
+        holidayData = await HolidaysService.loadYears(years, force, LS, E);
+        renderSourceStatus();
+        renderHolidays();
+        schedule();
+    }
+
+    const allHolidays = () => {
+        const years = getActiveYears();
+        let visible = holidayData.items || [];
+        for (const y of years) {
+            visible = E.mergeHolidays(visible, personal(y));
+        }
+        return visible.concat(HolidaysService.fixedPadding(years[0], years[years.length - 1]));
+    };
 
     /* ---------- Inicialización de Controles ---------- */
     function initControls() {
@@ -184,10 +222,11 @@
         if (ys) {
             ys.addEventListener('change', e => {
                 state.year = +e.target.value;
+                state.deadline = `${state.year + 1}-05-31`;
                 state.rangeStart = '';
-                state.rangeEnd = '';
+                state.rangeEnd = state.deadline;
                 changed(false);
-                loadHolidays(state.year);
+                loadHolidaysForRange();
                 syncControls();
             });
         }
@@ -198,8 +237,29 @@
         bindNum('#f-K', 'maxPeriods', 1, 5);
         bindNum('#f-sep', 'minSep', 0, 120);
 
-        $('#f-rs')?.addEventListener('change', e => { state.rangeStart = e.target.value; changed(); });
-        $('#f-re')?.addEventListener('change', e => { state.rangeEnd = e.target.value; changed(); });
+        $('#f-deadline')?.addEventListener('change', e => {
+            state.deadline = e.target.value;
+            state.rangeEnd = e.target.value;
+            if ($('#f-re')) $('#f-re').value = state.rangeEnd;
+            changed(false);
+            loadHolidaysForRange();
+            syncControls();
+        });
+
+        $('#f-rs')?.addEventListener('change', e => {
+            state.rangeStart = e.target.value;
+            changed(false);
+            loadHolidaysForRange();
+            syncControls();
+        });
+
+        $('#f-re')?.addEventListener('change', e => {
+            state.rangeEnd = e.target.value;
+            changed(false);
+            loadHolidaysForRange();
+            syncControls();
+        });
+
         $('#f-pref')?.addEventListener('change', e => { state.preference = e.target.value; changed(); });
 
         $$('input[name=regime]').forEach(r => r.addEventListener('change', e => {
@@ -232,18 +292,21 @@
         $('#btn-add')?.addEventListener('click', () => {
             const f = $('#add-date').value, n = $('#add-name').value.trim(), c = $('#add-cat').value;
             if (!E.isValidISO(f)) { $('#add-date').focus(); return; }
-            personal().added.push({ id: 'u:' + Date.now(), fecha: f, nombre: n || E.CATEGORIES[c].label, categoria: c });
+            const y = Number(f.slice(0, 4));
+            personal(y).added.push({ id: 'u:' + Date.now(), fecha: f, nombre: n || E.CATEGORIES[c].label, categoria: c });
             $('#add-name').value = '';
             renderHolidays();
             changed();
         });
 
-        $('#btn-refetch')?.addEventListener('click', () => loadHolidays(state.year, true));
+        $('#btn-refetch')?.addEventListener('click', () => loadHolidaysForRange(true));
         $('#btn-reset')?.addEventListener('click', () => {
             const y = state.year;
             state = JSON.parse(JSON.stringify(DEFAULTS));
             state.year = y;
+            state.deadline = `${y + 1}-05-31`;
             syncControls();
+            loadHolidaysForRange();
             changed();
         });
 
@@ -262,7 +325,6 @@
             });
         }
 
-        // Botón móvil de navegación a configuración
         $('#btn-toggle-config')?.addEventListener('click', () => {
             const configAside = $('aside.config');
             if (configAside) {
@@ -283,14 +345,17 @@
         if ($('#f-pref')) $('#f-pref').value = state.preference;
 
         const cfg = effective();
+        if ($('#f-deadline')) $('#f-deadline').value = cfg.deadline;
         if ($('#f-rs')) $('#f-rs').value = cfg.rangeStart;
         if ($('#f-re')) $('#f-re').value = cfg.rangeEnd;
 
-        ['#f-rs', '#f-re', '#f-avoid', '#f-prefer', '#add-date'].forEach(s => {
+        const minD = `${state.year}-01-01`;
+        const maxD = `${state.year + 2}-12-31`;
+        ['#f-rs', '#f-re', '#f-deadline', '#f-avoid', '#f-prefer', '#add-date'].forEach(s => {
             const el = $(s);
             if (el) {
-                el.min = `${state.year}-01-01`;
-                el.max = `${state.year}-12-31`;
+                el.min = minD;
+                el.max = maxD;
             }
         });
 
@@ -327,7 +392,7 @@
             const el = $(`#${key}-chips`);
             if (!el) return;
             el.innerHTML = state[key].map(d =>
-                `<span class="chip">${fmtShort(d)}<button type="button" data-k="${key}" data-d="${d}" aria-label="Quitar ${fmt(d)}">×</button></span>`
+                `<span class="chip">${fmtShort(d)}<button type="button" data-k="${key}" data-d="${d}" aria-label="Quitar ${fmt(d)}"><span class="material-icons-outlined" aria-hidden="true" style="font-size:14px">close</span></button></span>`
             ).join('');
         });
 
@@ -341,23 +406,29 @@
     function renderSourceStatus() {
         const h = holidayData, el = $('#src-status');
         if (!el) return;
+        const yearsStr = h.years && h.years.length ? h.years.join(' y ') : state.year;
         const when = h.when ? new Date(h.when).toLocaleDateString('es-AR') : '';
         const msg = {
-            loading: 'Consultando feriados en ArgentinaDatos…',
-            api: `Datos de ArgentinaDatos, descargados el ${when}.`,
-            cache: `Datos de ArgentinaDatos guardados el ${when}. Se renuevan solos cada 7 días.`,
-            stale: `No se pudo consultar ArgentinaDatos: ${h.message}. Se usan los últimos datos válidos, guardados el ${when}.`,
-            snapshot: `No se pudo consultar ArgentinaDatos: ${h.message}. Se usa una ${HolidaysService.SNAPSHOT[h.year] ? HolidaysService.SNAPSHOT[h.year].note : 'copia local'}.`,
-            none: `No hay feriados para ${h.year}: ${h.message}. Los cálculos usan solo tu semana de trabajo y las fechas que cargues.`
-        }[h.status] || '';
+            loading: `Consultando feriados de ${yearsStr} en ArgentinaDatos…`,
+            api: `Feriados de ${yearsStr} descargados de ArgentinaDatos.`,
+            cache: `Feriados de ${yearsStr} guardados en caché local (se renuevan cada 7 días).`,
+            stale: `No se pudo actualizar ArgentinaDatos (${h.message}). Se usan los últimos datos guardados el ${when}.`,
+            snapshot: `Se utiliza el calendario oficial de contingencia para ${yearsStr}.`,
+            none: `Sin feriados para ${yearsStr}: ${h.message}. Cálculos basados en semana laboral y fechas propias.`
+        }[h.status] || h.message || '';
 
         const cls = h.status === 'none' ? 'err' : (h.status === 'stale' || h.status === 'snapshot' || h.provisional) ? 'warn' : 'ok';
         el.innerHTML = `<div class="notice ${cls}">${esc(msg)}${h.issues && h.issues.length ? '<br>' + h.issues.map(esc).join('<br>') : ''}</div>`;
     }
 
     function renderHolidays() {
-        const p = personal(), items = holidayData.year === state.year ? holidayData.items : [];
-        const visible = E.mergeHolidays(items, p);
+        const years = getActiveYears();
+        let visible = holidayData.items || [];
+        for (const y of years) {
+            visible = E.mergeHolidays(visible, personal(y));
+        }
+        visible.sort((a, b) => (a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0));
+
         const counts = {};
         visible.forEach(h => { counts[h.categoria] = (counts[h.categoria] || 0) + 1; });
 
@@ -377,19 +448,19 @@
         }
 
         const opts = sel => Object.entries(E.CATEGORIES).map(([k, v]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${v.label}</option>`).join('');
-        const rows = visible.slice().sort((a, b) => (a.fecha < b.fecha ? -1 : 1)).map(h => {
+        const rows = visible.map(h => {
             const manual = h.origen === 'manual';
             return `<tr>
               <td>${fmtShort(h.fecha)}</td>
               <td><b>${esc(h.nombre)}</b><br><span class="count">${manual ? 'Cargada por vos' : `${esc(h.fuente)}${h.tipoOriginal ? ' · tipo «' + esc(h.tipoOriginal) + '»' : ''}`}</span></td>
               <td><select data-id="${esc(h.id)}" aria-label="Categoría de ${esc(h.nombre)}">${opts(h.categoria)}</select></td>
-              <td><button class="btn ghost sm danger" type="button" data-del="${esc(h.id)}" aria-label="${manual ? 'Eliminar' : 'Quitar'} ${esc(h.nombre)}">${manual ? 'Eliminar' : 'Quitar'}</button></td>
+              <td><button class="btn ghost sm danger" type="button" data-del="${esc(h.id)}" aria-label="${manual ? 'Eliminar' : 'Quitar'} ${esc(h.nombre)}"><span class="material-icons-outlined" aria-hidden="true" style="font-size:15px">delete_outline</span> ${manual ? 'Eliminar' : 'Quitar'}</button></td>
             </tr>`;
         }).join('');
 
         const tableBody = $('#hol-table tbody');
         if (tableBody) {
-            tableBody.innerHTML = rows || `<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--ink-muted)">No hay fechas cargadas para ${state.year}.</td></tr>`;
+            tableBody.innerHTML = rows || `<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--ink-muted)">No hay fechas cargadas en este horizonte de fechas.</td></tr>`;
         }
 
         const holTable = $('#hol-table');
@@ -398,38 +469,58 @@
             holTable.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeHoliday(b.dataset.del)));
         }
 
+        let totalHidden = 0;
+        for (const y of years) totalHidden += (personal(y).hidden || []).length;
         const hiddenNote = $('#hidden-note');
         if (hiddenNote) {
-            hiddenNote.innerHTML = p.hidden.length ? `${plural(p.hidden.length, 'fecha importada quitada', 'fechas importadas quitadas')}. <button class="btn ghost sm" type="button" id="btn-restore">Restaurar</button>` : '';
+            hiddenNote.innerHTML = totalHidden ? `${plural(totalHidden, 'fecha importada quitada', 'fechas importadas quitadas')}. <button class="btn ghost sm" type="button" id="btn-restore">Restaurar todas</button>` : '';
             const br = $('#btn-restore');
-            if (br) br.onclick = () => { p.hidden = []; renderHolidays(); changed(); };
+            if (br) br.onclick = () => {
+                for (const y of years) personal(y).hidden = [];
+                renderHolidays();
+                changed();
+            };
         }
     }
 
     function reclassify(id, cat) {
-        const p = personal(), own = p.added.find(h => h.id === id);
-        if (own) own.categoria = cat;
-        else {
-            const h = holidayData.items.find(x => x.id === id);
-            if (!h) return;
-            p.hidden.push(id);
-            p.added.push({ id: 'u:' + Date.now(), fecha: h.fecha, nombre: h.nombre, categoria: cat, basadoEn: id });
+        const years = getActiveYears();
+        for (const y of years) {
+            const p = personal(y);
+            const own = p.added.find(h => h.id === id);
+            if (own) { own.categoria = cat; renderHolidays(); changed(); return; }
         }
+        const h = (holidayData.items || []).find(x => x.id === id);
+        if (!h) return;
+        const yr = Number(h.fecha.slice(0, 4));
+        const p = personal(yr);
+        p.hidden.push(id);
+        p.added.push({ id: 'u:' + Date.now(), fecha: h.fecha, nombre: h.nombre, categoria: cat, basadoEn: id });
         if (!state.applyCats[cat] && cat !== 'sin_clasificar') state.applyCats[cat] = true;
         renderHolidays();
         changed();
     }
 
     function removeHoliday(id) {
-        const p = personal(), own = p.added.find(h => h.id === id);
-        if (own) {
-            p.added = p.added.filter(h => h.id !== id);
-            if (own.basadoEn) p.hidden = p.hidden.filter(x => x !== own.basadoEn);
-        } else {
-            p.hidden.push(id);
+        const years = getActiveYears();
+        for (const y of years) {
+            const p = personal(y);
+            const own = p.added.find(h => h.id === id);
+            if (own) {
+                p.added = p.added.filter(h => h.id !== id);
+                if (own.basadoEn) p.hidden = p.hidden.filter(x => x !== own.basadoEn);
+                renderHolidays();
+                changed();
+                return;
+            }
         }
-        renderHolidays();
-        changed();
+        const h = (holidayData.items || []).find(x => x.id === id);
+        if (h) {
+            const yr = Number(h.fecha.slice(0, 4));
+            personal(yr).hidden.push(id);
+            renderHolidays();
+            changed();
+        }
     }
 
     /* ---------- Motor y Programación de Cálculo ---------- */
@@ -472,6 +563,7 @@
     function syncRangeInputs(cfg) {
         if (document.activeElement !== $('#f-rs') && $('#f-rs')) $('#f-rs').value = cfg.rangeStart;
         if (document.activeElement !== $('#f-re') && $('#f-re')) $('#f-re').value = cfg.rangeEnd;
+        if (document.activeElement !== $('#f-deadline') && $('#f-deadline')) $('#f-deadline').value = cfg.deadline;
     }
 
     /* ---------- Explicaciones y Formato Textual ---------- */
@@ -505,7 +597,7 @@
         });
         if (plan.holidays.length) out.push(`Aprovecha ${plan.holidays.map(h => `${h.nombre} (${fmtShort(h.fecha)})`).join(', ')}.`);
         out.push(plan.R > 0 ? `Te ${plan.R === 1 ? 'queda 1 día' : `quedan ${plan.R} días`} de saldo.` : 'Usa todo tu saldo disponible.');
-        if (plan.periods.some(p => p.touchesEdge)) out.push('Uno de los bloques llega al borde del período analizado y podría estirarse un poco más con fechas del año vecino.');
+        if (plan.periods.some(p => p.touchesEdge)) out.push('Uno de los bloques llega al borde del período analizado y podría estirarse un poco más con fechas vecinas.');
         return out;
     }
 
@@ -528,7 +620,8 @@
                 const d = cal.days[i], vac = i >= p.si && i <= p.ei, dt = new Date(E.parseISO(d.date));
                 const cls = vac ? (d.consumes_vacation_balance ? 'vac' : 'vac0') : '';
                 const lab = dayLabel(d, vac, true);
-                html += `<div class="d ${cls} ${d.holidayApplies ? 'hol' : ''}" role="listitem" aria-label="${esc(fmt(d.date, true) + ': ' + lab)}" title="${esc(lab)}"><span class="w">${DC[d.dow]}</span><span class="n">${dt.getUTCDate()}</span><span class="m">${MESES[dt.getUTCMonth()].slice(0, 3)}</span></div>`;
+                const yrLabel = dt.getUTCFullYear() !== state.year ? `'${String(dt.getUTCFullYear()).slice(-2)}` : '';
+                html += `<div class="d ${cls} ${d.holidayApplies ? 'hol' : ''}" role="listitem" aria-label="${esc(fmt(d.date, true) + ': ' + lab)}" title="${esc(lab)}"><span class="w">${DC[d.dow]}</span><span class="n">${dt.getUTCDate()}</span><span class="m">${MESES[dt.getUTCMonth()].slice(0, 3)} ${yrLabel}</span></div>`;
             }
             return `<div class="strip-container"><p class="strip-label">${esc(periodLine(p))}</p><div class="strip" role="list">${html}</div></div>`;
         }).join('');
@@ -555,7 +648,7 @@
         <h4>Reglas en uso</h4><ul>${Object.entries(E.COST_CATS).map(([k, l]) => `<li>${l}: ${state.costRules[k] ? 'descuenta' : 'no descuenta'}</li>`).join('')}</ul>
         ${ign.length ? `<p class="hint">Fechas no consideradas como libres: ${ign.map(d => `${d.holidays[0].nombre} (${fmtShort(d.date)})`).map(esc).join(', ')}.</p>` : ''}
         <h4>Opciones evaluadas</h4>
-        <p class="hint">Se evaluaron ${st.evaluated.toLocaleString('es-AR')} períodos posibles dentro de ${fmtShort(effective().rangeStart)} a ${fmtShort(effective().rangeEnd)}; quedaron ${res.candidateCount.toLocaleString('es-AR')} opciones viables sin superposiciones ni doble conteo.</p>
+        <p class="hint">Se evaluaron ${st.evaluated.toLocaleString('es-AR')} períodos posibles dentro de ${fmtShort(effective().rangeStart)} a ${fmtShort(effective().rangeEnd)}; quedaron ${res.candidateCount.toLocaleString('es-AR')} opciones viables evaluadas entre ${getActiveYears().join(' y ')}.</p>
       </details>`;
     }
 
@@ -574,7 +667,7 @@
     /* ---------- Renderizado de Vistas ---------- */
     function render() {
         const notes = [];
-        if (holidayData.provisional) notes.push(`<div class="notice warn">Resultado provisional: el calendario de feriados de ${state.year} está incompleto o no se pudo verificar con certeza. Revisá «Feriados y días no laborables».</div>`);
+        if (holidayData.provisional) notes.push(`<div class="notice warn">Resultado provisional: el calendario de feriados está incompleto o no se pudo verificar con certeza. Revisá «Feriados y días no laborables».</div>`);
         $('#notices').innerHTML = notes.join('');
 
         if (res.empty) {
@@ -586,9 +679,10 @@
         const plan = res.recommendation;
         const shown = preview || plan;
         const hero = $('#hero');
+        const cfgE = effective();
         hero.innerHTML = `<div class="hero flash">
         <h2>${esc(headline(plan))}</h2>
-        <p class="sub">Prioridad: <b>${STRAT[state.strategy]}</b>${state.preference !== 'none' ? (state.preference === 'one' ? ' (período único)' : ' (múltiples períodos)') : ''}. Modalidad: <b>${state.regime === 'corridos' ? 'Días corridos' : state.regime === 'habiles' ? 'Días hábiles' : 'Personalizada'}</b>. Saldo disponible: <b>${state.S} días</b>.</p>
+        <p class="sub">Prioridad: <b>${STRAT[state.strategy]}</b>${state.preference !== 'none' ? (state.preference === 'one' ? ' (período único)' : ' (múltiples períodos)') : ''}. Período: <b>${fmtShort(cfgE.rangeStart)} al ${fmtShort(cfgE.rangeEnd)}</b> (vence ${fmtShort(cfgE.deadline)}). Modalidad: <b>${state.regime === 'corridos' ? 'Días corridos' : state.regime === 'habiles' ? 'Días hábiles' : 'Personalizada'}</b>. Saldo disponible: <b>${state.S} días</b>.</p>
         ${stripHTML(plan)}
         ${metricsHTML(plan)}
         <div class="why">${explain(plan, state.strategy).map(p => `<p>${esc(p)}</p>`).join('')}</div>
@@ -612,7 +706,7 @@
         if (state.strategy !== 'A' || !res.complementA || plan.k > 1 || state.preference === 'one') return '';
         const c = res.complementA;
         return `<div class="verdict"><p style="margin:0 0 8px"><b>Con los ${plan.R} días de saldo que te sobran</b> podés sumar ${c.k === 1 ? 'otro bloque' : `otros ${c.k} bloques`} adicionales: ${c.periods.map(p => `${fmtShort(p.start)}${p.end !== p.start ? '–' + fmtShort(p.end) : ''} (${p.blockLen} días libres por ${p.cost})`).join('; ')}. Sumarías <b>${plan.D + c.D} días libres en total</b>.</p>
-        <button class="btn ghost sm" type="button" id="btn-comp">Ver plan completo en el calendario</button></div>`;
+        <button class="btn ghost sm" type="button" id="btn-comp"><span class="material-icons-outlined" aria-hidden="true" style="font-size:16px">calendar_month</span> Ver plan completo en el calendario</button></div>`;
     }
 
     function optCard(title, plan, note) {
@@ -631,7 +725,7 @@
             <dt>Feriados aprovechados</dt><dd>${plan.holidays.length}</dd>
         </dl>
         ${note ? `<p class="same">${note}</p>` : ''}
-        <button class="btn ghost sm" type="button" data-plan="${esc(plan.key)}">${active ? '✓ En el calendario' : 'Ver en el calendario'}</button>
+        <button class="btn ghost sm" type="button" data-plan="${esc(plan.key)}">${active ? '<span class="material-icons-outlined" aria-hidden="true" style="font-size:16px">check</span> En el calendario' : 'Ver en el calendario'}</button>
       </div>`;
     }
 
@@ -732,28 +826,47 @@
             $('#cal-showing').textContent = plan ? `Mostrando en calendario: ${plan.periods.map(p => `${fmtShort(p.start)}${p.end !== p.start ? ' a ' + fmtShort(p.end) : ''}`).join(' + ')}.` : '';
         }
         const c = cal || E.buildCalendar(cfgE, allHolidays());
+
+        // Generar lista de meses desde el inicio del horizonte hasta el final
+        const sDate = new Date(E.parseISO(cfgE.rangeStart));
+        const eDate = new Date(E.parseISO(cfgE.rangeEnd));
+        const monthsList = [];
+        let curY = sDate.getUTCFullYear(), curM = sDate.getUTCMonth();
+        const limitY = eDate.getUTCFullYear(), limitM = eDate.getUTCMonth();
+
+        while (curY < limitY || (curY === limitY && curM <= limitM)) {
+            monthsList.push({ year: curY, month: curM });
+            curM++;
+            if (curM > 11) {
+                curM = 0;
+                curY++;
+            }
+        }
+
         let html = '';
-        for (let m = 0; m < 12; m++) {
-            const first = `${state.year}-${String(m + 1).padStart(2, '0')}-01`;
+        for (const { year: yr, month: m } of monthsList) {
+            const first = `${yr}-${String(m + 1).padStart(2, '0')}-01`;
             const off = (E.dowOf(first) + 6) % 7;
             let cells = ['lu', 'ma', 'mi', 'ju', 'vi', 'sá', 'do'].map(w => `<span class="wd" aria-hidden="true">${w}</span>`).join('') + '<span></span>'.repeat(off);
             let ix = c.index.get(first);
-            while (ix < c.days.length && c.days[ix].date.slice(5, 7) === first.slice(5, 7)) {
-                const d = c.days[ix], isV = vac.has(ix), inB = blk.has(ix);
-                const cls = ['c'];
-                if (isV) cls.push(d.consumes_vacation_balance ? 'c-vac' : 'c-vac0');
-                else if (d.holidayApplies) cls.push('c-hol');
-                else if (d.is_non_working_day) cls.push('c-off');
-                if (d.isHoliday && !d.holidayApplies) cls.push('c-holign');
-                if (inB && !isV) cls.push('c-ext');
-                if (!d.inRange) cls.push('c-out');
-                if (d.excluded) cls.push('c-excl');
-                if (d.date === TODAY) cls.push('c-today');
-                const lab = dayLabel(d, isV, inB) + (d.excluded ? ', fecha a evitar' : '') + (!d.inRange ? ', fuera del rango elegido' : '');
-                cells += `<span class="${cls.join(' ')}" role="gridcell" aria-label="${esc(fmt(d.date, true) + ': ' + lab)}" title="${esc(lab)}">${+d.date.slice(8)}</span>`;
-                ix++;
+            if (ix !== undefined) {
+                while (ix < c.days.length && c.days[ix].date.slice(0, 7) === first.slice(0, 7)) {
+                    const d = c.days[ix], isV = vac.has(ix), inB = blk.has(ix);
+                    const cls = ['c'];
+                    if (isV) cls.push(d.consumes_vacation_balance ? 'c-vac' : 'c-vac0');
+                    else if (d.holidayApplies) cls.push('c-hol');
+                    else if (d.is_non_working_day) cls.push('c-off');
+                    if (d.isHoliday && !d.holidayApplies) cls.push('c-holign');
+                    if (inB && !isV) cls.push('c-ext');
+                    if (!d.inRange) cls.push('c-out');
+                    if (d.excluded) cls.push('c-excl');
+                    if (d.date === TODAY) cls.push('c-today');
+                    const lab = dayLabel(d, isV, inB) + (d.excluded ? ', fecha a evitar' : '') + (!d.inRange ? ', fuera del rango elegido' : '');
+                    cells += `<span class="${cls.join(' ')}" role="gridcell" aria-label="${esc(fmt(d.date, true) + ': ' + lab)}" title="${esc(lab)}">${+d.date.slice(8)}</span>`;
+                    ix++;
+                }
             }
-            html += `<div class="month"><h4>${MESES[m]}</h4><div class="grid7" role="grid" aria-label="${MESES[m]} ${state.year}">${cells}</div></div>`;
+            html += `<div class="month"><h4>${MESES[m]} ${yr}</h4><div class="grid7" role="grid" aria-label="${MESES[m]} ${yr}">${cells}</div></div>`;
         }
         if ($('#months')) $('#months').innerHTML = html;
     }
@@ -763,7 +876,7 @@
         const r = window.runTests(E), ok = r.filter(x => x.ok).length;
         const list = $('#tests');
         if (list) {
-            list.innerHTML = `<li><b>${ok} de ${r.length} pruebas pasadas correctamente.</b></li>` + r.map(x => `<li class="${x.ok ? 'ok' : 'bad'}">${x.ok ? '✓' : '✗'} ${esc(x.name)}${x.detail ? ': ' + esc(x.detail) : ''}</li>`).join('');
+            list.innerHTML = `<li><b>${ok} de ${r.length} pruebas pasadas correctamente.</b></li>` + r.map(x => `<li class="${x.ok ? 'ok' : 'bad'}"><span class="material-icons-outlined" aria-hidden="true" style="font-size:16px;vertical-align:text-bottom">${x.ok ? 'check_circle' : 'cancel'}</span> ${esc(x.name)}${x.detail ? ': ' + esc(x.detail) : ''}</li>`).join('');
         }
     }
 
@@ -773,5 +886,5 @@
     initControls();
     syncControls();
     renderSourceStatus();
-    loadHolidays(state.year);
+    loadHolidaysForRange();
 })();

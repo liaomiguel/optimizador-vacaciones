@@ -1,10 +1,10 @@
-# 🏖️ Estirá tus Días — Tus vacaciones, mejor aprovechadas 🇦🇷
+# Estirá tus Días — Tus vacaciones, mejor aprovechadas
 
 **Estirá tus Días** es una aplicación web inteligente diseñada para calcular, comparar y optimizar períodos de vacaciones en Argentina. Evalúa todas las combinaciones posibles de fechas a lo largo del año, aprovechando fines de semana, feriados nacionales, días puente y días no laborables para maximizar los días consecutivos de descanso utilizando la menor cantidad de saldo disponible.
 
 ---
 
-## 🚀 Características principales
+## Características principales
 
 - **Optimización determinística y completa**: Algoritmo exhaustivo con programación dinámica que analiza todas las combinaciones posibles sin cortes arbitrarios ni dependencias de IA.
 - **Régimen de cómputo personalizable**:
@@ -16,19 +16,22 @@
   - Respaldo de contingencia local para el calendario oficial 2026 (Ley 27.399 y Decreto 614/2025).
   - Posibilidad de agregar fechas particulares o modificar categorías manualmente.
 - **Estrategias de optimización**:
-  - **⚡ Máximo descanso**: El bloque de días libres continuos más largo posible.
-  - **🎯 Máximo rendimiento**: Mayor descanso nuevo por cada día que consumís de tu saldo.
-  - **🗓️ Descanso distribuido**: Reparto del saldo en múltiples bloques para acumular más días libres en el año.
+  - **Máximo descanso**: El bloque de días libres continuos más largo posible.
+  - **Máximo rendimiento**: Mayor descanso nuevo por cada día que consumís de tu saldo.
+  - **Descanso distribuido**: Reparto del saldo en múltiples bloques para acumular más días libres en el año.
+- **Fecha límite / Vencimiento hacia el año siguiente**:
+  - Permite configurar la fecha límite para tomar las vacaciones del período (por defecto el 31 de mayo del año entrante, según la Ley de Contrato de Trabajo de Argentina).
+  - El motor optimiza combinaciones que abarcan tanto el año en curso como el verano y otoño del año siguiente (Carnaval, Semana Santa, etc.).
 - **Visualización clara y responsive**:
   - Tira interactiva con código de colores para días consumidos, libres y feriados.
   - Métricas verificables (descanso total, días extra, rendimiento).
-  - Calendario interactivo anual con referencias completas.
+  - Calendario interactivo multianual que muestra todos los meses del período activo (hasta 17 meses o más).
   - Soporte para **Modo Oscuro** y **Modo Claro** con selector y guardado de preferencias.
-- **Suite de pruebas automáticas**: 16 pruebas unitarias que verifican el correcto cálculo y la integridad algorítmica.
+- **Suite de pruebas automáticas**: 17 pruebas unitarias que verifican el correcto cálculo y la integridad algorítmica.
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 El código está organizado de manera modular por carpetas y responsabilidades:
 
@@ -53,7 +56,7 @@ optimizador-vacaciones/
 
 ---
 
-## 💻 Cómo ejecutarlo localmente
+## Cómo ejecutarlo localmente
 
 Al tratarse de una aplicación web estática (Vanilla HTML, CSS y JS), no requiere compilación previa.
 
@@ -78,9 +81,9 @@ Hacé doble clic en `index.html` o usá la extensión **Live Server** en tu edit
 
 ---
 
-## 🧪 Pruebas automáticas
+## Pruebas automáticas
 
-Podés ejecutar y verificar la suite de 16 pruebas unitarias de dos formas:
+Podés ejecutar y verificar la suite de 17 pruebas unitarias de dos formas:
 
 1. **Desde la terminal**:
    ```bash
@@ -93,7 +96,7 @@ Podés ejecutar y verificar la suite de 16 pruebas unitarias de dos formas:
 
 ---
 
-## 🌐 Despliegue en Netlify
+## Despliegue en Netlify
 
 El repositorio ya incluye el archivo [`netlify.toml`](./netlify.toml) preconfigurado con el directorio de publicación (`.`), cabeceras de seguridad (`X-Frame-Options`, `Content-Type-Options`) y redirecciones.
 
@@ -123,7 +126,7 @@ npx netlify deploy --prod --dir=.
 
 ---
 
-## ⚖️ Licencia y fuentes
+## Licencia y fuentes
 
 - **Feriados oficiales**: Datos obtenidos de [ArgentinaDatos](https://argentinadatos.com/) bajo calendario oficial de la República Argentina (Ley 27.399).
 - **Licencia**: MIT.
