@@ -215,7 +215,7 @@ header.top {
 /* Layout de dos columnas */
 .layout {
     display: grid;
-    grid-template-columns: minmax(340px, 410px) 1fr;
+    grid-template-columns: minmax(350px, 440px) 1fr;
     gap: 32px;
     align-items: start;
     padding-bottom: 60px;

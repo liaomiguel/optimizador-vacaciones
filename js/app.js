@@ -467,10 +467,10 @@
         const rows = visible.map(h => {
             const manual = h.origen === 'manual';
             return `<tr>
-              <td>${fmtShort(h.fecha)}</td>
-              <td><b>${esc(h.nombre)}</b><br><span class="count">${manual ? 'Cargada por vos' : `${esc(h.fuente)}${h.tipoOriginal ? ' · tipo «' + esc(h.tipoOriginal) + '»' : ''}`}</span></td>
-              <td><select data-id="${esc(h.id)}" aria-label="Categoría de ${esc(h.nombre)}">${opts(h.categoria)}</select></td>
-              <td><button class="btn ghost sm danger" type="button" data-del="${esc(h.id)}" aria-label="${manual ? 'Eliminar' : 'Quitar'} ${esc(h.nombre)}"><span class="material-icons-outlined" aria-hidden="true" style="font-size:15px">delete_outline</span> ${manual ? 'Eliminar' : 'Quitar'}</button></td>
+              <td class="hol-date"><span class="material-icons-outlined" aria-hidden="true" style="font-size:16px">event</span> <span>${fmtShort(h.fecha)}</span></td>
+              <td class="hol-info"><b>${esc(h.nombre)}</b><span class="count">${manual ? 'Cargada por vos' : `${esc(h.fuente)}${h.tipoOriginal ? ' · tipo «' + esc(h.tipoOriginal) + '»' : ''}`}</span></td>
+              <td class="hol-cat"><select data-id="${esc(h.id)}" aria-label="Categoría de ${esc(h.nombre)}">${opts(h.categoria)}</select></td>
+              <td class="hol-actions"><button class="btn ghost sm danger" type="button" data-del="${esc(h.id)}" aria-label="${manual ? 'Eliminar' : 'Quitar'} ${esc(h.nombre)}" title="${manual ? 'Eliminar fecha' : 'Quitar fecha'}"><span class="material-icons-outlined" aria-hidden="true" style="font-size:15px">delete_outline</span> <span>${manual ? 'Eliminar' : 'Quitar'}</span></button></td>
             </tr>`;
         }).join('');
 
